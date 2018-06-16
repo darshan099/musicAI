@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     Boolean mExternalStorageAvailable;
     LinearLayout ll;
-    ImageButton top_pause;
+    ImageButton play_pause_button;
     View view;
     public BottomNavigationView bottomNavigationView;
     MediaMetadataRetriever metadataRetriever;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         //initialization section
         listView=(ListView)findViewById(R.id.listview);
-        top_pause=(ImageButton)findViewById(R.id.imageButton);
+        play_pause_button=(ImageButton)findViewById(R.id.play_pause);
         ll=(LinearLayout)findViewById(R.id.bottom_navigator);
         bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
         metadataRetriever=new MediaMetadataRetriever();
@@ -114,10 +114,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStateChanged( View bottomSheet, int newState) {
                 if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                    top_pause.setVisibility(View.GONE);
+                    play_pause_button.setVisibility(View.GONE);
                 }
                 else if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                    top_pause.setVisibility(View.VISIBLE);
+                    play_pause_button.setVisibility(View.VISIBLE);
                 }
                 else if (newState == BottomSheetBehavior.STATE_HIDDEN) {
 
