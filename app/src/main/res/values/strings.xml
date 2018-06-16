@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MusicAI</string>
+    <string name="song_nav">Songs</string>
+    <string name="artist_nav">Artist</string>
 </resources>
