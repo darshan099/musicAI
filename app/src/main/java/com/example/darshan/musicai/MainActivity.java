@@ -1,15 +1,22 @@
 package com.example.darshan.musicai;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
+import android.database.ContentObservable;
+import android.media.Image;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.JsonReader;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,7 +24,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,10 +38,14 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private BottomSheetBehavior mBottomSheetBehavior1;
 
+    public int publicposition;
     ListView listView;
     Boolean mExternalStorageAvailable;
+    NodeList nodeList;
+    TextView textView;
+    ProgressDialog progressDialog;
     LinearLayout ll;
-    ImageButton top_pause;
+    ImageButton top_pause,down_pause,next,previous;
     View view;
     public BottomNavigationView bottomNavigationView;
     MediaMetadataRetriever metadataRetriever;
@@ -44,6 +61,10 @@ public class MainActivity extends AppCompatActivity {
         //initialization section
         listView=(ListView)findViewById(R.id.listview);
         top_pause=(ImageButton)findViewById(R.id.imageButton);
+        down_pause=(ImageButton)findViewById(R.id.imageButton2);
+        next=(ImageButton)findViewById(R.id.imageButton3);
+        textView=(TextView)findViewById(R.id.textView);
+        previous=(ImageButton)findViewById(R.id.imageButton4);
         ll=(LinearLayout)findViewById(R.id.bottom_navigator);
         bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
         metadataRetriever=new MediaMetadataRetriever();
@@ -53,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
         {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         }
+
+        //initialize media player
+        final MediaPlayer mp=new MediaPlayer();
 
         //extracting files from directory ending with .mp3 and .wav
         final ArrayList<File> mySongs = findSong(Environment.getExternalStorageDirectory());
@@ -94,19 +118,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int
                     position, long l) {
-                metadataRetriever.setDataSource(pathitems[position]);
-                try
-                {
-                    Toast.makeText(MainActivity.this, metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST), Toast.LENGTH_SHORT).show();
-                }
-                catch (Exception e)
-                {
-                    Toast.makeText(MainActivity.this, "unavailable", Toast.LENGTH_SHORT).show();
-                }
+                publicposition=position;
             }
         });
 
-
+        //pause button click listener
+        down_pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mp.pause();
+            }
+        });
         //bottom sheet section
         View bottomSheet = findViewById(R.id.design_bottom_sheet);
         mBottomSheetBehavior1 = BottomSheetBehavior.from(bottomSheet);
@@ -172,3 +194,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
+
