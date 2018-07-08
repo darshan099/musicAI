@@ -123,6 +123,4 @@
         </android.support.constraint.ConstraintLayout>
 
     </RelativeLayout>
-
-
 </android.support.design.widget.CoordinatorLayout>

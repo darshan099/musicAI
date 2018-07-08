@@ -3,37 +3,32 @@ package com.example.darshan.musicai;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
-import android.database.ContentObservable;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.JsonReader;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private BottomSheetBehavior mBottomSheetBehavior1;
@@ -45,10 +40,11 @@ public class MainActivity extends AppCompatActivity {
     TextView textView;
     ProgressDialog progressDialog;
     LinearLayout ll;
-    ImageButton top_pause,down_pause,next,previous;
+    ImageButton top_pause,down_pause,next,previous,three_button;
     View view;
     public BottomNavigationView bottomNavigationView;
     MediaMetadataRetriever metadataRetriever;
+    ArrayList <String> predicted_song_list;
     String[] items,pathitems,item_artist;
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 99;
 
@@ -61,11 +57,13 @@ public class MainActivity extends AppCompatActivity {
         //initialization section
         listView=(ListView)findViewById(R.id.listview);
         top_pause=(ImageButton)findViewById(R.id.imageButton);
+        three_button=(ImageButton)findViewById(R.id.three_dots);
         down_pause=(ImageButton)findViewById(R.id.imageButton2);
         next=(ImageButton)findViewById(R.id.imageButton3);
         textView=(TextView)findViewById(R.id.textView);
         previous=(ImageButton)findViewById(R.id.imageButton4);
         ll=(LinearLayout)findViewById(R.id.bottom_navigator);
+        predicted_song_list=new ArrayList<String>();
         bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
         metadataRetriever=new MediaMetadataRetriever();
 
@@ -75,8 +73,13 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         }
 
-        //initialize media player
-        final MediaPlayer mp=new MediaPlayer();
+
+        //initializing dummy artist name and ratings
+        final SongPredict songPredict=new SongPredict();
+        songPredict.init();
+
+        //initializing json parsing controller
+        final Controller controller=new Controller();
 
         //extracting files from directory ending with .mp3 and .wav
         final ArrayList<File> mySongs = findSong(Environment.getExternalStorageDirectory());
@@ -107,34 +110,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //inserting all the string of arrays into adapter
-        final ArrayAdapter<String> adp = new
-                ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,items);
-
-        final ArrayAdapter<String> adp_artist = new
-                ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,item_artist);
-
+        final MyAdapterSong adp=new MyAdapterSong(this,items);
         listView.setAdapter(adp);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int
                     position, long l) {
-                publicposition=position;
+
             }
         });
 
-        //pause button click listener
-        down_pause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mp.pause();
-            }
-        });
+
+
+
+
         //bottom sheet section
         View bottomSheet = findViewById(R.id.design_bottom_sheet);
         mBottomSheetBehavior1 = BottomSheetBehavior.from(bottomSheet);
         mBottomSheetBehavior1.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
-            public void onStateChanged( View bottomSheet, int newState) {
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                     top_pause.setVisibility(View.GONE);
                 }
@@ -147,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onSlide(View bottomSheet, float slideOffset) {
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
             }
         });
 
@@ -164,13 +159,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                     case R.id.action_item2:
                     {
-                        listView.setAdapter(adp_artist);
+                        new predict_task().execute();
                         break;
                     }
                 }
                 return true;
             }
         });
+
+
 
     }
 
@@ -192,6 +189,58 @@ public class MainActivity extends AppCompatActivity {
         }
         return at;
     }
+
+    public class predict_task extends AsyncTask<Void,Void,Void>
+    {
+        ProgressDialog dialog;
+        @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+            dialog=new ProgressDialog(MainActivity.this);
+            dialog.setTitle("Wait");
+            dialog.setMessage("breathe in.. out");
+            dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            SongPredict songPredict=new SongPredict();
+            songPredict.init();
+            Controller controller=new Controller();
+
+            ArrayList <String> final_artist=songPredict.Predict();
+
+            try
+            {
+                predicted_song_list.clear();
+                String song_list[]=new String[3];
+                for(int i=0;i<final_artist.size();i++)
+                {
+                    song_list= Controller.readData(final_artist.get(i));
+                    predicted_song_list.addAll(Arrays.asList(song_list));
+                }
+            }
+            catch (Exception e)
+            {
+                Log.i("TAG",e.getLocalizedMessage());
+            }
+            return null;
+        }
+        @Override
+        public void onPostExecute(Void result)
+        {
+            super.onPreExecute();
+
+            MyAdapterPredict myAdapterPredict=new MyAdapterPredict(MainActivity.this,predicted_song_list);
+            listView.setAdapter(myAdapterPredict);
+            dialog.dismiss();
+
+
+        }
+    }
+
+
 
 }
 
