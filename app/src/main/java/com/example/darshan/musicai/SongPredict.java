@@ -4,14 +4,14 @@ import java.util.ArrayList;
 
 public class SongPredict {
 
-    ArrayList<String> artist=new ArrayList<String>();
-    ArrayList<Float> artist_rating=new ArrayList<Float>();
+    public static ArrayList<String> artist=new ArrayList<String>();
+    public static ArrayList<Float> artist_rating=new ArrayList<Float>();
 
-    ArrayList<String> unique_artist=new ArrayList<String>();
-    ArrayList<Float> temp_rating=new ArrayList<Float>();
-    ArrayList<Float> unique_artist_rating=new ArrayList<Float>();
-    ArrayList<Integer> artist_frequency=new ArrayList<Integer>();
-    ArrayList<String> final_artist=new ArrayList<String>();
+    public ArrayList<String> unique_artist=new ArrayList<String>();
+    public ArrayList<Float> temp_rating=new ArrayList<Float>();
+    public ArrayList<Float> unique_artist_rating=new ArrayList<Float>();
+    public ArrayList<Integer> artist_frequency=new ArrayList<Integer>();
+    public ArrayList<String> final_artist=new ArrayList<String>();
 
     public void init()
     {
@@ -27,12 +27,14 @@ public class SongPredict {
         artist_rating.add((float)5);
     }
 
-    public void AddArtistRating(String artist_name,float rating)
+    public static void AddArtistRating(String artist_name,float rating)
     {
-        artist.add(artist_name);
-        artist.remove(0);
-        artist_rating.add(rating);
-        artist_rating.remove(0);
+        if(!artist_name.equalsIgnoreCase("null")) {
+            artist.remove(0);
+            artist_rating.remove(0);
+            artist.add(artist_name);
+            artist_rating.add(rating);
+        }
     }
     public ArrayList Predict()
     {

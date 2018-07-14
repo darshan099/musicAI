@@ -2,10 +2,13 @@ package com.example.darshan.musicai;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -22,6 +25,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.NodeList;
 
@@ -33,20 +37,19 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private BottomSheetBehavior mBottomSheetBehavior1;
 
-    public int publicposition;
     ListView listView;
-    Boolean mExternalStorageAvailable;
-    NodeList nodeList;
     TextView textView;
-    ProgressDialog progressDialog;
     LinearLayout ll;
     ImageButton top_pause,down_pause,next,previous,three_button;
     View view;
     public BottomNavigationView bottomNavigationView;
     MediaMetadataRetriever metadataRetriever;
     ArrayList <String> predicted_song_list;
-    String[] items,pathitems,item_artist;
+    public static String[] items,pathitems,item_artist;
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 99;
+
+    //initializing dummy artist name and ratings
+    final SongPredict songPredict=new SongPredict();
 
 
     @Override
@@ -73,16 +76,17 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         }
 
-
-        //initializing dummy artist name and ratings
-        final SongPredict songPredict=new SongPredict();
+        //running init predict in method
         songPredict.init();
 
         //initializing json parsing controller
         final Controller controller=new Controller();
 
         //extracting files from directory ending with .mp3 and .wav
-        final ArrayList<File> mySongs = findSong(Environment.getExternalStorageDirectory());
+        ArrayList<File> mySongs=null;
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            mySongs = findSong(Environment.getExternalStorageDirectory());
+        }
 
         //music path variables
         items = new String[ mySongs.size() ];
@@ -120,10 +124,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-
-
-
         //bottom sheet section
         View bottomSheet = findViewById(R.id.design_bottom_sheet);
         mBottomSheetBehavior1 = BottomSheetBehavior.from(bottomSheet);
@@ -159,18 +159,27 @@ public class MainActivity extends AppCompatActivity {
                     }
                     case R.id.action_item2:
                     {
-                        new predict_task().execute();
+                        if(isNetworkAvailable()) {
+                            new predict_task().execute();
+                        }
+                        else
+                        {
+                            Toast.makeText(MainActivity.this, "Connect To Internet", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                     }
                 }
                 return true;
             }
         });
-
-
-
     }
 
+    public boolean isNetworkAvailable()
+    {
+        ConnectivityManager connectivityManager=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo=connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo!=null && activeNetworkInfo.isConnected();
+    }
     //function to search songs form directories
     public ArrayList<File> findSong(File root){
         ArrayList<File> at = new ArrayList<File>();
@@ -205,9 +214,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            SongPredict songPredict=new SongPredict();
-            songPredict.init();
-            Controller controller=new Controller();
 
             ArrayList <String> final_artist=songPredict.Predict();
 
@@ -235,12 +241,7 @@ public class MainActivity extends AppCompatActivity {
             MyAdapterPredict myAdapterPredict=new MyAdapterPredict(MainActivity.this,predicted_song_list);
             listView.setAdapter(myAdapterPredict);
             dialog.dismiss();
-
-
         }
     }
-
-
-
 }
 

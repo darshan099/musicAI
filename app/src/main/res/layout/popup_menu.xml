@@ -4,11 +4,7 @@
     android:layout_width="match_parent">
 
     <item
-        android:id="@+id/action_item1"
-        android:title="Songs" />
-
-    <item
-        android:id="@+id/action_item2"
-        android:title="Recommend" />
+        android:id="@+id/item1"
+        android:title="Rating" />
 
 </menu>
