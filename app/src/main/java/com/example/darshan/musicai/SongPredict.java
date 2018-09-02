@@ -1,40 +1,97 @@
 package com.example.darshan.musicai;
 
-import java.util.ArrayList;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.widget.Toast;
 
-public class SongPredict {
+import java.util.ArrayList;
+import java.sql.*;
+
+public class SongPredict{
 
     public static ArrayList<String> artist=new ArrayList<String>();
     public static ArrayList<Float> artist_rating=new ArrayList<Float>();
-
+    public static final String DATABASE_NAME="database.db";
+    public static final int DATABASE_VERSION=1;
+    public static SQLiteDatabase db;
+    private static Context context;
+    public static DatabaseHelper dbhelper;
     public ArrayList<String> unique_artist=new ArrayList<String>();
     public ArrayList<Float> temp_rating=new ArrayList<Float>();
     public ArrayList<Float> unique_artist_rating=new ArrayList<Float>();
     public ArrayList<Integer> artist_frequency=new ArrayList<Integer>();
     public ArrayList<String> final_artist=new ArrayList<String>();
 
-    public void init()
-    {
-        artist.add("Taylor Swift");
-        artist.add("Eminem");
-        artist.add("Ed Sheeran");
-        artist.add("Martin Garrix");
-        artist.add("Drake");
-        artist_rating.add((float)5);
-        artist_rating.add((float)5);
-        artist_rating.add((float)5);
-        artist_rating.add((float)5);
-        artist_rating.add((float)5);
+    public SongPredict(Context context1) {
+        context=context1;
+        dbhelper=new DatabaseHelper(context,DATABASE_NAME,null,DATABASE_VERSION);
     }
 
+    public SongPredict open() throws SQLException
+    {
+        db=dbhelper.getReadableDatabase();
+        return this;
+    }
+    public void close()
+    {
+        db.close();
+    }
+    public SQLiteDatabase getdatabaseinstance()
+    {
+        return db;
+    }
+
+    public void init()
+    {
+
+        try {
+
+
+            db = dbhelper.getWritableDatabase();
+            db.execSQL("INSERT INTO artist(name,rating) VALUES('Taylor Swift',5.0);");
+            db = dbhelper.getWritableDatabase();
+            db.execSQL("INSERT INTO artist(name,rating) VALUES('Eminem',5.0);");
+            db = dbhelper.getWritableDatabase();
+            db.execSQL("INSERT INTO artist(name,rating) VALUES('Ed Sheeran',5.0);");
+            db = dbhelper.getWritableDatabase();
+            db.execSQL("INSERT INTO artist(name,rating) VALUES('Martin Garrix',5.0);");
+            db = dbhelper.getWritableDatabase();
+            db.execSQL("INSERT INTO artist(name,rating) VALUES('Drake',5.0);");
+        }
+        catch (Exception e){
+            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+        }
+
+    }
     public static void AddArtistRating(String artist_name,float rating)
     {
         if(!artist_name.equalsIgnoreCase("null")) {
-            artist.remove(0);
-            artist_rating.remove(0);
-            artist.add(artist_name);
-            artist_rating.add(rating);
+            try
+            {
+
+                db = dbhelper.getWritableDatabase();
+                db.execSQL("INSERT INTO artist(name,rating) VALUES('"+artist_name+"',"+rating+");");
+                db=dbhelper.getReadableDatabase();
+                db=dbhelper.getWritableDatabase();
+                db.delete("artist","id=1",null);
+
+            }
+            catch (Exception e)
+            {
+                Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+            }
         }
+    }
+    public boolean table_empty()
+    {
+        db=dbhelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM artist",null);
+        if(!cursor.moveToFirst())
+        {
+            return true;
+        }
+        return  false;
     }
     public ArrayList Predict()
     {
@@ -43,9 +100,21 @@ public class SongPredict {
         unique_artist_rating.clear();
         artist_frequency.clear();
         final_artist.clear();
-
-        unique_artist=(ArrayList<String>) artist.clone();
-        temp_rating=(ArrayList<Float>) artist_rating.clone();
+        db=dbhelper.getReadableDatabase();
+        try {
+            Cursor cursor = db.rawQuery("SELECT * FROM artist",null);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()){
+                    unique_artist.add(cursor.getString(1));
+                    temp_rating.add(cursor.getFloat(2));
+                    cursor.moveToNext();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show();
+        }
         for(int i=0;i<unique_artist.size();i++)
         {
             int tot_count=1;
@@ -86,5 +155,4 @@ public class SongPredict {
     {
 
     }
-
 }

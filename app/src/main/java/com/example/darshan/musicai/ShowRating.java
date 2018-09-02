@@ -18,6 +18,7 @@ public class ShowRating extends Dialog implements android.view.View.OnClickListe
     public RatingBar ratingBar;
     public String[] song_artist=MainActivity.item_artist;
 
+
     public ShowRating(@NonNull Context context,int position) {
         super(context);
         this.c=context;

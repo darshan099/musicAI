@@ -23,7 +23,6 @@ import java.util.Collections;
 
 public class MyAdapterSong extends ArrayAdapter{
     String[] song;
-    SongPredict songPredict=new SongPredict();
     public MyAdapterSong(@NonNull Context context, String[] song_list) {
         super(context, R.layout.listview_layout_song,R.id.song_text,song_list);
         this.song=song_list;

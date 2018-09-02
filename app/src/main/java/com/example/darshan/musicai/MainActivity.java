@@ -30,6 +30,7 @@ import android.widget.Toast;
 import org.w3c.dom.NodeList;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,14 +50,20 @@ public class MainActivity extends AppCompatActivity {
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 99;
 
     //initializing dummy artist name and ratings
-    final SongPredict songPredict=new SongPredict();
+    SongPredict songPredict;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        songPredict=new SongPredict(getApplicationContext());
+        //open database
+        try {
+            songPredict.open();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         //initialization section
         listView=(ListView)findViewById(R.id.listview);
         top_pause=(ImageButton)findViewById(R.id.imageButton);
@@ -71,13 +78,17 @@ public class MainActivity extends AppCompatActivity {
         metadataRetriever=new MediaMetadataRetriever();
 
         //permission section
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+        while(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
         {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         }
 
         //running init predict in method
-        songPredict.init();
+        if(songPredict.table_empty())
+        {
+            songPredict.init();
+            Toast.makeText(this, "empty", Toast.LENGTH_SHORT).show();
+        }
 
         //initializing json parsing controller
         final Controller controller=new Controller();
