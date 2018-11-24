@@ -24,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,8 +35,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MediaController.MediaPlayerControl{
     private BottomSheetBehavior mBottomSheetBehavior1;
 
     ListView listView;
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     View view;
     public BottomNavigationView bottomNavigationView;
     MediaMetadataRetriever metadataRetriever;
-    ArrayList <String> predicted_song_list;
+    ArrayList <String> predicted_song_list,predicted_artist_list;
     public static String[] items,pathitems,item_artist;
     public static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 99;
 
@@ -74,11 +76,12 @@ public class MainActivity extends AppCompatActivity {
         previous=(ImageButton)findViewById(R.id.imageButton4);
         ll=(LinearLayout)findViewById(R.id.bottom_navigator);
         predicted_song_list=new ArrayList<String>();
+        predicted_artist_list=new ArrayList<String>();
         bottomNavigationView = (BottomNavigationView)findViewById(R.id.navigation);
         metadataRetriever=new MediaMetadataRetriever();
 
         //permission section
-        while(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
         {
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         }
@@ -125,7 +128,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //inserting all the string of arrays into adapter
-        final MyAdapterSong adp=new MyAdapterSong(this,items);
+
+        final MyAdapterSong adp=new MyAdapterSong(this,items,item_artist);
         listView.setAdapter(adp);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -210,6 +214,61 @@ public class MainActivity extends AppCompatActivity {
         return at;
     }
 
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public int getDuration() {
+        return 0;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        return 0;
+    }
+
+    @Override
+    public void seekTo(int i) {
+
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return false;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return false;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return false;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return false;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
+    }
+
     public class predict_task extends AsyncTask<Void,Void,Void>
     {
         ProgressDialog dialog;
@@ -231,16 +290,24 @@ public class MainActivity extends AppCompatActivity {
             try
             {
                 predicted_song_list.clear();
-                String song_list[]=new String[3];
+                predicted_artist_list.clear();
+                String[] song_list;
+                String[] artist_list;
+                String[][] array_list;
                 for(int i=0;i<final_artist.size();i++)
                 {
-                    song_list= Controller.readData(final_artist.get(i));
+                    array_list= Controller.readData(final_artist.get(i));
+                    song_list=array_list[0];
+                    artist_list=array_list[1];
                     predicted_song_list.addAll(Arrays.asList(song_list));
+                    predicted_artist_list.addAll(Arrays.asList(artist_list));
+                    Log.i("artist",final_artist.get(i));
                 }
             }
             catch (Exception e)
             {
-                Log.i("TAG",e.getLocalizedMessage());
+                Log.i("TAG",e.toString());
+
             }
             return null;
         }
@@ -248,8 +315,7 @@ public class MainActivity extends AppCompatActivity {
         public void onPostExecute(Void result)
         {
             super.onPreExecute();
-
-            MyAdapterPredict myAdapterPredict=new MyAdapterPredict(MainActivity.this,predicted_song_list);
+            MyAdapterPredict myAdapterPredict=new MyAdapterPredict(MainActivity.this,predicted_song_list,predicted_artist_list);
             listView.setAdapter(myAdapterPredict);
             dialog.dismiss();
         }

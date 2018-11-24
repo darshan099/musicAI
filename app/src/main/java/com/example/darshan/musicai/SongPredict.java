@@ -3,6 +3,7 @@ package com.example.darshan.musicai;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -73,8 +74,11 @@ public class SongPredict{
                 db = dbhelper.getWritableDatabase();
                 db.execSQL("INSERT INTO artist(name,rating) VALUES('"+artist_name+"',"+rating+");");
                 db=dbhelper.getReadableDatabase();
+                Cursor cursor = db.rawQuery("SELECT * FROM artist",null);
+                cursor.moveToFirst();
+                String del_artist=cursor.getString(0);
                 db=dbhelper.getWritableDatabase();
-                db.delete("artist","id=1",null);
+                db.execSQL("DELETE FROM artist WHERE id='"+del_artist+"';");
 
             }
             catch (Exception e)
@@ -107,6 +111,7 @@ public class SongPredict{
                 while (!cursor.isAfterLast()){
                     unique_artist.add(cursor.getString(1));
                     temp_rating.add(cursor.getFloat(2));
+                    Log.i("name",cursor.getString(1));
                     cursor.moveToNext();
                 }
             }

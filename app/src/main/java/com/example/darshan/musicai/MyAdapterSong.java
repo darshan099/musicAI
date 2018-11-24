@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.media.Rating;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,13 +20,18 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class MyAdapterSong extends ArrayAdapter{
     String[] song;
-    public MyAdapterSong(@NonNull Context context, String[] song_list) {
-        super(context, R.layout.listview_layout_song,R.id.song_text,song_list);
-        this.song=song_list;
+    String[] song_artists;
+    public MyAdapterSong(@NonNull Context context, String[] rec_song,String[] rec_artist) {
+        super(context, R.layout.listview_layout_song,R.id.song_text,rec_song);
+        this.song= rec_song;
+        this.song_artists= rec_artist;
+        Log.i("check length", String.valueOf(song.length));
 
     }
 
@@ -36,10 +42,11 @@ public class MyAdapterSong extends ArrayAdapter{
         LayoutInflater inflater=(LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View row=inflater.inflate(R.layout.listview_layout_song,parent,false);
         TextView txt_predict=(TextView)row.findViewById(R.id.song_text);
+        TextView txt_artist=(TextView)row.findViewById(R.id.song_artist);
         final ImageButton three_dots=(ImageButton)row.findViewById(R.id.three_dots);
         txt_predict.setText(song[position]);
+        txt_artist.setText(song_artists[position]);
         three_dots.setTag(position);
-
         three_dots.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceType")
             @Override
