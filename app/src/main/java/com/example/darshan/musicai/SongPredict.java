@@ -13,8 +13,9 @@ public class SongPredict{
 
     public static ArrayList<String> artist=new ArrayList<String>();
     public static ArrayList<Float> artist_rating=new ArrayList<Float>();
+    public static ArrayList<String> favourite_list=new ArrayList<String>();
     public static final String DATABASE_NAME="database.db";
-    public static final int DATABASE_VERSION=1;
+    public static final int DATABASE_VERSION=3;
     public static SQLiteDatabase db;
     private static Context context;
     public static DatabaseHelper dbhelper;
@@ -155,6 +156,59 @@ public class SongPredict{
             }
         }
         return final_artist;
+    }
+
+    public void addFavouriteSong(int track_position)
+    {
+        try {
+            if (dataInFavouritesExists(track_position)) {
+                Log.i("EXISTS_FAV","exists");
+                db = dbhelper.getWritableDatabase();
+                db.execSQL("UPDATE favourites SET count=count+1 WHERE position='" + track_position + "';");
+            }
+            else {
+                db = dbhelper.getWritableDatabase();
+                db.execSQL("INSERT INTO favourites(position,count) VALUES('" + track_position + "','1');");
+                Log.i("FAV_ADD", "added");
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    public boolean dataInFavouritesExists(int track_position)
+    {
+        db=dbhelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM favourites WHERE position='"+track_position+"';",null);
+        if(cursor.getCount()<=0)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public ArrayList getFavouriteSongList()
+    {
+        try {
+            db = dbhelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM favourites ORDER BY count DESC;", null);
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    favourite_list.add(cursor.getString(1));
+                    Log.i("name_fav", cursor.getString(1));
+                    Log.i("Count_Fav",cursor.getString(2));
+
+                    cursor.moveToNext();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return favourite_list;
+
     }
     public void main(String args[])
     {
